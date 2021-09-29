@@ -1,0 +1,302 @@
+#!/bin/bash
+
+#--------------------[ Script for installing Arch Linux ]-------------------------+
+#                                                                                 |
+#  local  : devconfig/Pre-Install                                                 |
+#  script : arch.in                                                               |
+#  author : Fernando Ferrazza Toniolo <fernando.f.toniolo@gmail.com>              |
+#  version: 1                                                                     |
+#  date   : 28/09/2021                                                            |
+#  how run: ./arch.in                                                             |
+#                                                                                 |
+#---------------------------------------------------------------------------------+
+#  This this script installs only the basic version of arch with grub, os-prober 
+#  and dhcpcd
+
+#Console Help
+if [[ $1 = @(-h|--help) ]]; then
+  sed -n '/^#.*how run.*/p' ${0##*/} | tr -d '#\|'
+  exit $(( $# ? 0 : 1 ))
+fi
+
+
+clear
+
+#Start Mensage
+cat <<EOL
+
+        ================================================
+                Welcome to Arch Linux Installer ++
+        ================================================
+
+        AVISO IMPORTANTE:
+        ================
+        
+            Esse Instalador assume que você deseja instalar o Arch Linux
+            em todo seu HD (Disco Rígido). E irá instalar, além da partição 
+            'root' também uma partição de 'boot' e a 'swap'. Outra coisa,
+            é necessário que seu disco esteja vazio, sem nehuma partição
+            criada, para deletar rode:
+            
+            	dd if=/dev/zero of=/dev/sda bs=512 count=1 conv=notrunc
+            	
+            Se não deseja essa estrutura no seu HD ou se deseja manter possíveis 
+            sistemas, se existirem,
+            
+            tecle: n
+            
+            Para sair do instalador ou utilize com a o opção --box ou --gui para 
+            utilizar outros modelos de instalação que é possível configurar as 
+            partições do Disco Rígido (HD).
+            
+            DESEJA REALMENTE INICIAR A INSTALAÇÃO ? [S/n]:
+            
+    
+EOL
+
+setterm -cursor off
+echo -ne "\n "
+read -n 1 INSTALL
+clear
+
+#Main Mensage
+cat <<STI
+
+                          ================================================
+                                       INSTALLING ARCH LINUX           
+                          ================================================    
+
+STI
+
+if [[ "$INSTALL" != @(S|s) ]]; then
+	exit $?
+fi
+
+_criar_particoes(){
+	PART=$(fdisk -l | sed -n 1p | cut -d: -f2 | cut -d, -f1 | tr -d a-zA-Z" ")
+    NOME=$(fdisk -l | sed -n 1p | grep '/dev/...' | sed 's/.*\/dev\///g' | sed 's/\:.*//g')
+    RAIZ=$(( $PART - 2 ))
+    (echo n; echo p; echo; echo; echo "+$RAIZ""G";echo w) | fdisk /dev/$NOME
+    (echo n; echo p; echo; echo; echo "+200""M";echo w) | fdisk /dev/$NOME
+    (echo n; echo p; echo; echo; echo; echo t; echo; echo 82; echo w) | fdisk /dev/$NOME
+}
+
+ctrl_c(){
+	echo
+	setterm -cursor on
+	exit $?
+}
+
+_r='\e[31;1m';_n='\e[36;1m';_w='\e[37;1m';_g='\e[32;1m'
+_y='\e[33;1m';_p='\e[35;1m';_o='\e[m';_XX='_XX'
+
+
+
+_s(){
+	for i in $(seq 1 $1); do 
+		_XX=$_XX'_XX'		
+	done
+	echo -en $_XX | sed 's/_XX/ /g'
+}
+
+_bs(){
+	for i in $(seq 1 $1); do 
+		_XX=$_XX'_XX'		
+	done
+	echo -en $_XX | sed 's/_XX/\\b/g'
+}
+
+#Stages
+declare -x _msg=("Setting up the keyboard..........."
+				 "Testing the internet.............."
+				 "Checking the clock................"
+				 "Creating partitions..............."
+				 "Formatting root user.............."
+				 "Formatting the swap..............."
+				 "Formatting the boot..............."
+				 "Activating swap..................."
+				 "Mounting root in /mnt............."
+				 "Creating /mnt/boot................"
+				 "Mounting sda2 in boot............."
+				 "Installing the basics............."
+				 "Generating /et/fstab.............."
+				 "Setting the time.................."
+				 "Setting the language.............."
+				 "Generating the language..........."
+				 "Setting the language.............."
+				 "Setting up the keyboard..........."
+				 "Setting hostname.................."
+				 "Defining virtual host............."
+				 "Copying kernel img................"
+				 "Downloading grub.................."
+				 "Installing grub on MBR............"
+				 "Dictating options to grub........."
+				 "Configuring grub.................."
+				 "Installing dhcpcd................."
+				 "Enabling dhcpcd...................")
+
+declare -x _cmd=("sleep 1"
+				 "sleep 1"
+				 "sleep 1"
+				 "sleep 1"
+				 "sleep 1"
+				 "sleep 1"
+				 "sleep 1"
+				 "sleep 1"
+				 "sleep 1"
+				 "sleep 1"
+				 "sleep 1"
+				 "sleep 1"
+				 "sleep 1"
+				 "sleep 1"
+				 "sleep 1"
+				 "sleep 1"
+				 "sleep 1"
+				 "sleep 1"
+				 "sleep 1"
+				 "sleep 1"
+				 "sleep 1"
+				 "sleep 1"
+				 "sleep 1"
+				 "sleep 1"
+				 "sleep 1"
+				 "sleep 1")
+
+
+#declare -x _cmd=("loadkeys br-abnt2"
+#				 "ping -c1 www.google.com"
+#				 "timedatectl set-ntp true"
+#				 "_criar_particoes"
+#				 "mkfs.ext4 /dev/sda1"
+#				 "mkswap /dev/sda3"
+#				 "mkfs.ext4 /dev/sda2"
+#				 "mount /dev/sda1 /mnt"
+#				 "mkdir /mnt/boot"
+#				 "mount /dev/sda2 /mnt/boot"
+#				 "pacstrap /mnt base"
+#				 "genfstab -U /mnt >> /mnt/etc/fstab"
+#				 "ln -sf /usr/share/zoneinfo/Brazil/East /etc/localtime"
+#				 "echo 'pt_BR.UTF-8 UTF-8' >> /etc/locale.gen"
+#				 "echo 'LANG=pt_BR.UTF-8' > /etc/locale.conf"
+#				 "locale-gen"
+#				 "echo 'KEYMAP=br-abnt2' > /etc/vconsole.conf"
+#				 "echo 'arch' > /etc/hostname"
+#				 "echo -e '127.0.0.1\tlocalhost\n::1\tlocalhost\n127.0.1.1\tarch.linux\tarch\n' > /etc/hosts"
+#				 "mkinitcpio -p linux"
+#				 "pacman -S grub --noconfirm"
+#				 "grub-install --target=i386-pc --recheck /dev/sda"
+#				 "pacman -S os-prober --noconfirm"
+#				 "grub-mkconfig -o /boot/grub/grub.cfg"
+#				 "pacman -S dhcpcd --noconfirm"
+#				 "systemctl enable dhcpcd")
+
+_progress-bar() {
+   
+    setterm -cursor off 
+   trap ctrl_c SIGINT SIGTERM
+   
+   #Spining item
+   i=1
+   sp="/-\|"
+   _start=1
+   _end=100
+
+   spin(){ printf " [ \b${sp:i++%${#sp}:1}]";}
+  
+   #ProgressBar
+	function ProgressBar {
+
+		let _progress=(${1}*100/${2}*100)/100
+		let _done=(${_progress}*4)/10
+		let _left=55-$_done
+		_fill=$(printf "%${_done}s")
+		_empty=$(printf "%${_left}s")
+		printf "\r\t\t\t\t${_fill// /.}${_empty// / } [${_progress}%%]"
+	}
+
+	
+	for number in $(seq ${_start} ${_end})
+	do
+		sleep 0.1
+		ProgressBar ${number} ${_end} 
+		spin
+	done 
+   
+   printf "\r"
+}
+
+_run(){
+	{
+		while true
+		do
+			trap "exit" SIGUSR1	
+			_progress-bar	
+		done; } &
+		pid=$!
+}
+
+_installer(){
+	
+	for i in {0..12}; do
+		
+		echo -en " $_y➜ $_o" ; echo -en ${_msg[$i]}
+		_run
+		
+		
+		sleep 2 ; eval ${_cmd[$i]} >> /tmp/$i.log 2>/tmp/$i.log
+	
+	
+		if [[ "$?" == "0" ]]; then
+		
+			echo -en $(_s 100)
+			echo -en "$(_bs 100)"" $_g✔$_o ${_msg[$i]}$(_s 50 | sed 's/ /./g')$_o$_g[$_n""ok$_g]$_o$(_s 50)"
+			echo
+			kill -USR1 $pid
+			wait $pid
+			trap EXIT
+		else
+			echo -en $(_s 100)
+			echo -en "$(_bs 100)"" $_r✖$_o ${_msg[$i]}$(_s 50 | sed 's/ /./g')$_o$_r[erro]$_o$(_s 50)"
+			echo -e "\nCheck the log in /tmp/$i.log"
+			setterm -cursor on
+			kill -USR1 $pid
+			wait $pid
+			trap EXIT
+			exit $?
+		fi
+	
+	done
+}
+
+_installer
+
+
+sed -n '/^ctrl_c/,/^_installer$/p' arch.in > /mnt/continue-arch.in
+sed -i 's/{0\.\.12}/{13..26}/' /mnt/continue-arch.in
+echo -e "hwclock -w\nexit" >> /mnt/continue-arch.in
+sed -i '1i\#\!\/bin\/bash\n' /mnt/continue-arch.in
+chmod +x /mnt/continue-arch.in
+arch-chroot /mnt ./continue-arch.in
+
+_eoi(){
+trap EXIT
+cat <<EOI
+
+		====================================
+		INSTALLATION COMPLETED SUCCESSFULLY!
+		====================================
+	
+		Remove the disc/iso from the CD/DVD drive and press [ ENTER ]
+		-------------------------------------------------------------
+	
+EOI
+
+rm /mnt/continue-arch.in
+umount -Rl /mnt
+swapoff /dev/sda3
+setterm -cursor on
+read -n 1 ENTER
+reboot
+exit $?
+}
+_eoi
