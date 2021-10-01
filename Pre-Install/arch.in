@@ -19,7 +19,6 @@ if [[ $1 = @(-h|--help) ]]; then
   exit $(( $# ? 0 : 1 ))
 fi
 
-
 clear
 
 #Start Mensage
@@ -107,33 +106,33 @@ _bs(){
 }
 
 #Stages
-declare -x _msg=("Setting up the keyboard..........."
-				 "Testing the internet.............."
-				 "Checking the clock................"
-				 "Creating partitions..............."
-				 "Formatting root user.............."
-				 "Formatting the swap..............."
-				 "Formatting the boot..............."
-				 "Activating swap..................."
-				 "Mounting root in /mnt............."
-				 "Creating /mnt/boot................"
-				 "Mounting sda2 in boot............."
-				 "Installing the basics............."
-				 "Generating /et/fstab.............."
-				 "Setting the time.................."
-				 "Setting the language.............."
-				 "Generating the language..........."
-				 "Setting the language.............."
-				 "Setting up the keyboard..........."
-				 "Setting hostname.................."
-				 "Defining virtual host............."
-				 "Copying kernel img................"
-				 "Downloading grub.................."
-				 "Installing grub on MBR............"
-				 "Dictating options to grub........."
-				 "Configuring grub.................."
-				 "Installing dhcpcd................."
-				 "Enabling dhcpcd...................")
+declare -x _msg=("Setting up the keyboard.............................................................."
+				 "Testing the internet................................................................."
+				 "Checking the clock..................................................................."
+				 "Creating partitions.................................................................."
+				 "Formatting root user................................................................."
+				 "Formatting the swap.................................................................."
+				 "Formatting the boot.................................................................."
+				 "Activating swap......................................................................"
+				 "Mounting root in /mnt................................................................"
+				 "Creating /mnt/boot..................................................................."
+				 "Mounting sda2 in boot................................................................"
+				 "Installing the basics................................................................"
+				 "Generating /et/fstab................................................................."
+				 "Setting the time....................................................................."
+				 "Setting the language................................................................."
+				 "Generating the language.............................................................."
+				 "Setting the language................................................................."
+				 "Setting up the keyboard.............................................................."
+				 "Setting hostname....................................................................."
+				 "Defining virtual host................................................................"
+				 "Copying kernel img..................................................................."
+				 "Downloading grub....................................................................."
+				 "Installing grub on MBR..............................................................."
+				 "Dictating options to grub............................................................"
+				 "Configuring grub....................................................................."
+				 "Installing dhcpcd...................................................................."
+				 "Enabling dhcpcd......................................................................")
 
 declare -x _cmd=("sleep 1"
 				 "sleep 1"
@@ -196,32 +195,18 @@ _progress-bar() {
    trap ctrl_c SIGINT SIGTERM
    
    #Spining item
-   i=1
-   sp="/-\|"
-   _start=1
-   _end=100
+    i=1
+        sp="/-\|"
+        echo -n ' '
 
-   spin(){ printf " [ \b${sp:i++%${#sp}:1}]";}
-  
-   #ProgressBar
-	function ProgressBar {
+		spin(){ printf "\r\t\t\t\t\t\t\t\t\t\t.........|[ \b${sp:i++%${#sp}:1}]";}
+		
+        while true
+        do 
+			sleep 0.1
+               spin
+        done
 
-		let _progress=(${1}*100/${2}*100)/100
-		let _done=(${_progress}*4)/10
-		let _left=55-$_done
-		_fill=$(printf "%${_done}s")
-		_empty=$(printf "%${_left}s")
-		printf "\r\t\t\t\t${_fill// /.}${_empty// / } [${_progress}%%]"
-	}
-
-	
-	for number in $(seq ${_start} ${_end})
-	do
-		sleep 0.1
-		ProgressBar ${number} ${_end} 
-		spin
-	done 
-   
    printf "\r"
 }
 
@@ -239,7 +224,7 @@ _installer(){
 	
 	for i in {0..12}; do
 		
-		echo -en " $_y➜ $_o" ; echo -en ${_msg[$i]}
+		echo -en "$_y➜ $_o" ; echo -en ${_msg[$i]}
 		_run
 		
 		
@@ -249,14 +234,14 @@ _installer(){
 		if [[ "$?" == "0" ]]; then
 		
 			echo -en $(_s 100)
-			echo -en "$(_bs 100)"" $_g✔$_o ${_msg[$i]}$(_s 50 | sed 's/ /./g')$_o$_g[$_n""ok$_g]$_o$(_s 50)"
+			echo -en "$(_bs 100)""$_g✔$_o ${_msg[$i]}$(_s 1| sed 's/ /./g')$_o$_g[$_n""ok$_g]$_o$(_s 20)"
 			echo
 			kill -USR1 $pid
 			wait $pid
 			trap EXIT
 		else
 			echo -en $(_s 100)
-			echo -en "$(_bs 100)"" $_r✖$_o ${_msg[$i]}$(_s 50 | sed 's/ /./g')$_o$_r[erro]$_o$(_s 50)"
+			echo -en "$(_bs 100)"" $_r✖$_o ${_msg[$i]}$(_s 1| sed 's/ /./g')$_o$_r[erro]$_o$(_s 20)"
 			echo -e "\nCheck the log in /tmp/$i.log"
 			setterm -cursor on
 			kill -USR1 $pid
