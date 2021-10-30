@@ -58,6 +58,101 @@ echo -ne "\n "
 read -n 1 INSTALL
 clear
 
+
+#Personal Config
+
+echo -e "
+
+        ================================================
+                Welcome to Arch Linux Installer 
+        ================================================
+
+        SETTINGS:
+        ================
+        
+            Want to create a password for root : [Y/N]           
+    
+"
+
+setterm -cursor off
+echo -ne "\n "
+read -r TMP
+clear
+
+#RootPass
+if [[ "$TMP" == @(Y|y) ]]; then
+	read -p -r "Set the Root user password: " ROOTPASS
+fi
+
+cat <<M2
+
+        ================================================
+                Welcome to Arch Linux Installer 
+        ================================================
+
+        SETTINGS:
+        ================
+        
+            Do you want to create a second user besides root: [Y/N]           
+    
+M2
+
+echo -ne "\n "
+read -nr TMP
+clear
+
+#UserName
+if [[ "$TMP" == @(Y|y) ]]; then
+	read -pr "Set the user name: " USERNAME
+fi
+
+cat <<M3
+
+        ================================================
+                Welcome to Arch Linux Installer 
+        ================================================
+
+        SETTINGS:
+        ================
+        
+            Do you want to create a password for the user: [Y/N]           
+    
+M3
+
+echo -ne "\n "
+read -nr TMP
+clear
+
+#UserPass
+if [[ "$TMP" == @(Y|y) ]]; then
+	read -pr "Set the user password: " USERPASS
+fi
+
+#Show Choices
+	cat <<MF
+
+        ================================================
+                Welcome to Arch Linux Installer 
+        ================================================
+
+        SETTINGS:
+        ================
+        
+            Your config:
+
+			Root Pass: $ROOTPASS   
+
+			New User Name: $USERNAME    
+
+			User Password: $USERPASS   
+    
+			Do you confirm this config: [Y/N] 
+MF
+
+
+
+
+
 #Main Mensage
 cat <<STI
 
@@ -203,7 +298,7 @@ _progress-bar() {
 		
         while true
         do 
-			sleep 0.1
+			sleep 0.1s
                spin
         done
 
